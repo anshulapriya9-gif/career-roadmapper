@@ -1,0 +1,38 @@
+:root {
+  font-family: 'Avenir Next', Avenir, 'Segoe UI', sans-serif;
+  color: #263b31;
+  background: #f4f6f3;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5;
+  font-synthesis: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+input {
+  font-family: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: #dcebc8;
+  color: #203b2d;
+}

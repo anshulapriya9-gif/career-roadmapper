@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: career-roadmapper-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm run server
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_TOKEN
+        generateValue: true
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
