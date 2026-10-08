@@ -92,7 +92,7 @@ app.post('/api/roadmap/generate', generationLimiter, async (request, response) =
   }
 
   if (!process.env.GROQ_API_KEY) {
-    response.status(503).json({ error: 'Groq is not configured yet. Add GROQ_API_KEY to your .env file and restart the app.' })
+    response.status(503).json({ error: 'AI roadmap generation is not enabled yet.' })
     return
   }
 

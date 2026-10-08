@@ -6,10 +6,10 @@ The Render Blueprint deploys the frontend and Express API together as one web se
 
 1. Push this repository to GitHub. `.env` is ignored; never commit Groq or API tokens.
 2. In Render, choose **New > Blueprint** and select this GitHub repository.
-3. Set `GROQ_API_KEY` as a secret when prompted. The Blueprint generates `API_TOKEN` for the protected state API.
+3. Deploy without `GROQ_API_KEY` to publish the website. The Blueprint generates `API_TOKEN` for the protected state API.
 4. Deploy the service. The Render service URL is the public website URL.
 
-The free Render service may sleep when idle, so its first request can take longer. Roadmap edits are saved in each visitor's browser and are not shared with other visitors. The protected state API remains available for trusted server-side clients; its file-backed state can reset after a restart or redeploy.
+The free Render service may sleep when idle, so its first request can take longer. Roadmap edits are saved in each visitor's browser and are not shared with other visitors. The protected state API remains available for trusted server-side clients; its file-backed state can reset after a restart or redeploy. AI roadmap generation is unavailable until `GROQ_API_KEY` is added as a secret in Render's environment settings.
 
 ## Routes
 
