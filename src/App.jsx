@@ -108,9 +108,7 @@ function App() {
   const [addingMilestone, setAddingMilestone] = useState(false)
   const [milestoneDraft, setMilestoneDraft] = useState('')
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
-  const [isHydrated, setIsHydrated] = useState(false)
-  const [apiAvailable, setApiAvailable] = useState(false)
-  const [syncStatus, setSyncStatus] = useState('connecting')
+  const syncStatus = 'saved'
   const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false)
   const [generationError, setGenerationError] = useState('')
 
@@ -129,64 +127,6 @@ function App() {
   useEffect(() => {
     window.localStorage.setItem('roadmapper-resources', JSON.stringify(savedResources))
   }, [savedResources])
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function loadServerState() {
-      try {
-        const response = await fetch('/api/state')
-        if (!response.ok) throw new Error('Unable to load saved roadmap')
-        const { state } = await response.json()
-        if (cancelled) return
-
-        if (state) {
-          if (Array.isArray(state.phases)) setPhases(state.phases)
-          if (Array.isArray(state.skills)) setSkills(state.skills)
-          if (typeof state.role === 'string') setGoalRole(state.role)
-          if (Array.isArray(state.savedResources)) setSavedResources(state.savedResources)
-        }
-        setApiAvailable(true)
-        setSyncStatus('saved')
-      } catch {
-        if (!cancelled) setSyncStatus('offline')
-      } finally {
-        if (!cancelled) setIsHydrated(true)
-      }
-    }
-
-    loadServerState()
-    return () => { cancelled = true }
-  }, [])
-
-  useEffect(() => {
-    if (!isHydrated || !apiAvailable) return undefined
-
-    const controller = new AbortController()
-    const timeout = window.setTimeout(async () => {
-      setSyncStatus('saving')
-      try {
-        const response = await fetch('/api/state', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ role: goalRole, phases, skills, savedResources }),
-          signal: controller.signal,
-        })
-        if (!response.ok) throw new Error('Unable to save roadmap')
-        setSyncStatus('saved')
-      } catch (error) {
-        if (error.name !== 'AbortError') {
-          setApiAvailable(false)
-          setSyncStatus('offline')
-        }
-      }
-    }, 250)
-
-    return () => {
-      window.clearTimeout(timeout)
-      controller.abort()
-    }
-  }, [isHydrated, apiAvailable, goalRole, phases, skills, savedResources])
 
   const milestones = phases.flatMap((phase) => phase.milestones)
   const completedCount = milestones.filter((milestone) => milestone.done).length
@@ -329,7 +269,7 @@ function App() {
           <div className="topbar-actions">
             <div className={`sync-indicator sync-${syncStatus}`} aria-live="polite">
               <span />
-              {syncStatus === 'connecting' ? 'Connecting' : syncStatus === 'saving' ? 'Saving' : syncStatus === 'offline' ? 'Offline · saved on device' : 'All changes saved'}
+              Saved on this device
             </div>
             <label className="search-box">
               <Search size={17} />

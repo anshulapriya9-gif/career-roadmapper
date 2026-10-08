@@ -1,5 +1,6 @@
 import dotenv from 'dotenv'
 import express from 'express'
+import { rateLimit } from 'express-rate-limit'
 import { randomUUID, timingSafeEqual } from 'node:crypto'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import path from 'node:path'
@@ -11,6 +12,7 @@ const app = express()
 const port = Number(process.env.PORT || process.env.API_PORT || 3001)
 const dataDirectory = path.join(path.dirname(fileURLToPath(import.meta.url)), 'data')
 const stateFile = path.join(dataDirectory, 'state.json')
+const webDirectory = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist')
 const groqModel = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile'
 
 if (process.env.NODE_ENV === 'production' && !process.env.API_TOKEN) {
@@ -19,9 +21,18 @@ if (process.env.NODE_ENV === 'production' && !process.env.API_TOKEN) {
 }
 
 app.use(express.json({ limit: '256kb' }))
+app.set('trust proxy', 1)
+
+const generationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many roadmap generation requests. Please try again later.' },
+})
 
 app.use('/api', (request, response, next) => {
-  if (request.path === '/health') return next()
+  if (request.path === '/health' || (request.method === 'POST' && request.path === '/roadmap/generate')) return next()
 
   const configuredToken = process.env.API_TOKEN
   if (!configuredToken) return next()
@@ -71,7 +82,7 @@ app.put('/api/state', async (request, response, next) => {
   }
 })
 
-app.post('/api/roadmap/generate', async (request, response) => {
+app.post('/api/roadmap/generate', generationLimiter, async (request, response) => {
   const role = typeof request.body?.role === 'string' ? request.body.role.trim() : ''
   const skills = request.body?.skills
 
@@ -159,6 +170,15 @@ app.post('/api/roadmap/generate', async (request, response) => {
       error: timedOut ? 'Groq took too long to respond. Please try again.' : 'Could not connect to Groq. Check your connection and try again.',
     })
   }
+})
+
+app.use(express.static(webDirectory))
+
+app.get('/{*path}', (request, response, next) => {
+  if (request.path.startsWith('/api/')) return next()
+  response.sendFile(path.join(webDirectory, 'index.html'), (error) => {
+    if (error) next(error)
+  })
 })
 
 app.use((error, _request, response, _next) => {

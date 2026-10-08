@@ -3,7 +3,7 @@ services:
     name: career-roadmapper-api
     runtime: node
     plan: free
-    buildCommand: npm ci
+    buildCommand: npm ci && npm run build
     startCommand: npm run server
     healthCheckPath: /api/health
     envVars:
